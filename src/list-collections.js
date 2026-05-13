@@ -134,8 +134,8 @@ export function formatCollection(collection, index) {
 /**
  * Interactive collection selection and download
  */
-async function selectAndDownload(bynder, outputDir, debug, limit) {
-  const collections = await listCollections(bynder, { limit })
+async function selectAndDownload(bynder, outputDir, debug, options) {
+  const collections = await listCollections(bynder, options)
   
   if (collections.length === 0) {
     return
@@ -216,7 +216,7 @@ async function main() {
       
       try {
         if (options.interactive) {
-          await selectAndDownload(bynder, options.output, debug, options.limit)
+          await selectAndDownload(bynder, options.output, debug, options)
         } else {
           await listCollections(bynder, options)
         }
