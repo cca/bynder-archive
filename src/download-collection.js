@@ -80,14 +80,56 @@ export async function getCollection(bynder, collectionId) {
 
 /**
  * Get all media assets in a collection
+ * The Bynder SDK doesn't expose the collections/{id}/media endpoint,
+ * so we use fetch to call it directly
  */
 export async function getCollectionMedia(bynder, collectionId) {
   try {
-    const media = await bynder.getMediaList({
-      propertyCollectionId: collectionId,
-      limit: 1000 // Adjust if needed
+    const baseURL = process.env.BYNDER_DOMAIN
+    const token = process.env.TOKEN
+    const collectionUrl = `https://${baseURL}/api/v4/collections/${collectionId}/media/`
+
+    const response = await fetch(collectionUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     })
-    return media
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}: ${response.statusText}`)
+    }
+
+    // Only returns an array of media IDs, which could be deleted assets
+    const mediaIds = await response.json()
+
+    // Fetch full media info for each ID using direct API calls
+    // The SDK's getMediaInfo doesn't work with these IDs, so we use fetch
+    // Some media may be deleted but still in collection, so we handle 404s gracefully
+    const mediaPromises = mediaIds.map(async (id) => {
+      try {
+        const mediaUrl = `https://${baseURL}/api/v4/media/${id}/`
+        const mediaResponse = await fetch(mediaUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (!mediaResponse.ok) {
+          if (mediaResponse.status === 404) {
+            console.warn(`Warning: Media ${id} not found (may have been deleted)`)
+            return null
+          }
+          throw new Error(`Failed to fetch media ${id}: ${mediaResponse.status}`)
+        }
+        return mediaResponse.json()
+      } catch (error) {
+        console.warn(`Warning: Could not fetch media ${id}: ${error.message}`)
+        return null
+      }
+    })
+
+    const media = await Promise.all(mediaPromises)
+    // Filter out null values (failed requests)
+    return media.filter(m => m !== null)
   } catch (error) {
     console.error(`Error fetching collection media: ${error.message}`)
     throw error
@@ -171,19 +213,34 @@ export async function downloadCollection(bynder, collectionId, outputDir = './da
     writeFileSync(metadataPath, JSON.stringify(assetInfo, null, 2))
     console.log(`  ✓ Saved metadata to ${metadataPath}`)
 
-    // Download the asset file
-    if (assetInfo.thumbnails && assetInfo.thumbnails.original) {
-      const downloadUrl = assetInfo.thumbnails.original
-      console.log(`  ↓ Downloading from ${downloadUrl}`)
+    // Get the download URL from the Bynder API
+    try {
+      const baseURL = process.env.BYNDER_DOMAIN
+      const token = process.env.TOKEN
+      const downloadApiUrl = `https://${baseURL}/api/v4/media/${asset.id}/download/`
 
-      try {
+      const downloadResponse = await fetch(downloadApiUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!downloadResponse.ok) {
+        throw new Error(`Failed to get download URL: ${downloadResponse.status}`)
+      }
+
+      const downloadData = await downloadResponse.json()
+      const downloadUrl = downloadData.s3_file || downloadData.url
+
+      if (downloadUrl) {
+        console.log(`  ↓ Downloading from ${downloadUrl.substring(0, 100)}...`)
         await downloadFile(downloadUrl, assetPath)
         console.log(`  ✓ Downloaded to ${assetPath}`)
-      } catch (error) {
-        console.error(`  ✗ Error downloading: ${error.message}`)
+      } else {
+        console.log(`  ⚠ No download URL in API response`)
       }
-    } else {
-      console.log(`  ⚠ No download URL found for this asset`)
+    } catch (error) {
+      console.error(`  ✗ Error downloading: ${error.message}`)
     }
 
     console.log()
