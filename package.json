@@ -5,7 +5,9 @@
   "description": "Archiving CCA marketing assets from Bynder",
   "main": "index.js",
   "scripts": {
-    "test": "node --test src/test/*.test.js"
+    "test": "node --test src/test/*.test.js",
+    "lint": "eslint --cache src/**/*.js",
+    "lint:fix": "eslint --cache src/**/*.js --fix"
   },
   "keywords": [],
   "author": "phette23 <phette23@gmail.com> (https://phette.net)",
@@ -14,5 +16,10 @@
   "dependencies": {
     "@bynder/bynder-js-sdk": "^2.5.2",
     "commander": "^14.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.3.0",
+    "globals": "^17.6.0"
   }
 }
