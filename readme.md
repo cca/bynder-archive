@@ -1,9 +1,62 @@
 # Bynder Archiving
 
-https://github.com/Bynder/bynder-js-sdk
+Tools for downloading and archiving Bynder collections with complete metadata.
 
-Bynder has API SDKs for other languages, too.
+SDK: https://github.com/Bynder/bynder-js-sdk
+API: https://api.bynder.com/docs/getting-started
 
-API docs: https://api.bynder.com/docs/getting-started
+## Setup
 
-The imported packages in the API docs examples are different from the SDKs on GitHub. I'm not sure what explains the discrepancy.
+```bash
+cp example.env .env
+# Edit .env and set TOKEN and BYNDER_DOMAIN
+pnpm install
+pnpm test
+```
+
+## Usage
+
+Use `--help` or `-h` on either script for detailed options.
+
+### List Collections
+
+```bash
+# List collections (default: 50)
+node list-collections.js
+# List more collections
+node list-collections.js --limit 100
+# JSON output
+node list-collections.js --json
+# Interactive selection and download
+node list-collections.js --interactive
+```
+
+### Download a Collection
+
+```bash
+# Download to default directory (./data)
+node download-collection.js $COLLECTION_ID
+# Custom output directory
+node download-collection.js $COLLECTION_ID -o ./archive/2024
+# Debug mode (print JSON without downloading)
+node download-collection.js $COLLECTION_ID --debug
+DEBUG=true node download-collection.js $COLLECTION_ID
+```
+
+## Output Structure
+
+```sh
+data/
+└── collection-name/
+    ├── _collection-metadata.json
+    ├── asset-name.jpg
+    ├── asset-name.jpg.metadata.json
+    ├── another-asset.pdf
+    └── another-asset.pdf.metadata.json
+```
+
+Each asset includes the original file and a `.metadata.json` file.
+
+## License
+
+[ECL-2.0](https://opensource.org/license/ECL-2.0)
