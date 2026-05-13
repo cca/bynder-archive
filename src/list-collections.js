@@ -19,12 +19,54 @@ async function getCollections(bynder, limit = 1000) {
 }
 
 /**
+ * Filter collections based on provided options
+ */
+export function filterCollections(collections, options = {}) {
+  let filtered = collections
+
+  // Filter by name (regex)
+  if (options.name) {
+    const regex = new RegExp(options.name, 'i')
+    filtered = filtered.filter(c => regex.test(c.name))
+  }
+
+  // Filter by minimum media count
+  if (options.minCount !== undefined) {
+    filtered = filtered.filter(c => (c.collectionCount || 0) >= options.minCount)
+  }
+
+  // Filter by maximum media count
+  if (options.maxCount !== undefined) {
+    filtered = filtered.filter(c => (c.collectionCount || 0) <= options.maxCount)
+  }
+
+  // Filter by user
+  if (options.user) {
+    const regex = new RegExp(options.user, 'i')
+    filtered = filtered.filter(c => c.user && regex.test(c.user.name))
+  }
+
+  // Filter by public/private
+  if (options.public) {
+    filtered = filtered.filter(c => c.IsPublic === 1)
+  }
+  if (options.private) {
+    filtered = filtered.filter(c => c.IsPublic === 0)
+  }
+
+  return filtered
+}
+
+/**
  * List all collections
  */
 async function listCollections(bynder, options = {}) {
   console.log('Fetching collections...\n')
   
-  const collections = await getCollections(bynder, options.limit)
+  let collections = await getCollections(bynder, options.limit)
+  
+  // Apply filters
+  collections = filterCollections(collections, options)
   
   if (options.json) {
     console.log(JSON.stringify(collections, null, 2))
@@ -140,8 +182,14 @@ async function main() {
     .description('List Bynder collections and optionally download one')
     .option('-j, --json', 'Output as JSON')
     .option('-i, --interactive', 'Interactive mode: select and download a collection')
-    .option('-l, --limit <number>', 'Maximum number of collections to retrieve (default: 50)', (value) => parseInt(value, 10), 50)
-    .option('-o, --output <dir>', 'Output directory for downloads', './downloads')
+    .option('-l, --limit <number>', 'Maximum number of collections to retrieve', (value) => parseInt(value, 10), 50)
+    .option('-n, --name <pattern>', 'Filter by name (case-insensitive regex)')
+    .option('-m, --min-count <number>', 'Filter by minimum media count', parseInt)
+    .option('-M, --max-count <number>', 'Filter by maximum media count', parseInt)
+    .option('-u, --user <pattern>', 'Filter by user name (case-insensitive regex)')
+    .option('-p, --public', 'Only show public collections')
+    .option('-P, --private', 'Only show private collections')
+    .option('-o, --output <dir>', 'Output directory for downloads', './data')
     .option('-d, --debug', 'Debug mode: print JSON responses without downloading')
     .action(async (options) => {
       const TOKEN = process.env.TOKEN
@@ -155,6 +203,11 @@ async function main() {
 
       if (!BYNDER_DOMAIN) {
         console.error('Error: BYNDER_DOMAIN environment variable not set')
+        process.exit(1)
+      }
+
+      if (options.public && options.private) {
+        console.error('Error: Cannot use both --public and --private filters')
         process.exit(1)
       }
 
