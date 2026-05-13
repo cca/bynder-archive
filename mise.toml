@@ -1,0 +1,4 @@
+[env]
+'_'.file = { path = '.env' }
+[tools]
+node = "24"
