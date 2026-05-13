@@ -5,7 +5,7 @@
   "description": "Archiving CCA marketing assets from Bynder",
   "main": "index.js",
   "scripts": {
-    "test": "node --test *.test.js"
+    "test": "node --test src/test/*.test.js"
   },
   "keywords": [],
   "author": "phette23 <phette23@gmail.com> (https://phette.net)",

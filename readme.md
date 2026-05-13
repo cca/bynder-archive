@@ -22,31 +22,31 @@ Use `--help` or `-h` on either script for detailed options.
 
 ```bash
 # List collections (default: 50)
-node list-collections.js
+node src/list-collections.js
 # List more collections
-node list-collections.js --limit 100
+node src/list-collections.js --limit 100
 # JSON output
-node list-collections.js --json
+node src/list-collections.js --json
 # Interactive selection and download
-node list-collections.js --interactive
+node src/list-collections.js --interactive
 ```
 
 ### Download a Collection
 
 ```bash
-# Download to default directory (./data)
-node download-collection.js $COLLECTION_ID
+# Download to default directory (./downloads)
+node src/download-collection.js <collection-id>
 # Custom output directory
-node download-collection.js $COLLECTION_ID -o ./archive/2024
+node src/download-collection.js <collection-id> -o ./archive/2024
 # Debug mode (print JSON without downloading)
-node download-collection.js $COLLECTION_ID --debug
-DEBUG=true node download-collection.js $COLLECTION_ID
+node src/download-collection.js <collection-id> --debug
+DEBUG=true node src/download-collection.js <collection-id>
 ```
 
 ## Output Structure
 
-```sh
-data/
+```
+downloads/
 └── collection-name/
     ├── _collection-metadata.json
     ├── asset-name.jpg
@@ -56,7 +56,3 @@ data/
 ```
 
 Each asset includes the original file and a `.metadata.json` file.
-
-## License
-
-[ECL-2.0](https://opensource.org/license/ECL-2.0)

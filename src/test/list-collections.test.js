@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
-import { validateCollectionSelection, formatCollection } from './list-collections.js'
+import { validateCollectionSelection, formatCollection } from '../list-collections.js'
 
 // validateCollectionSelection tests
 test('validateCollectionSelection returns null for "q"', () => {

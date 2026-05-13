@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
-import { sanitizeFilename, getAssetFilename } from './download-collection.js'
+import { sanitizeFilename, getAssetFilename } from '../download-collection.js'
 
 test('sanitizeFilename removes invalid characters', () => {
   assert.strictEqual(
