@@ -27,7 +27,7 @@ export function createBynderClient(token, domain) {
  */
 export function sanitizeFilename(filename) {
   return filename
-    .replace(/[\/\\?%*:|"<>]/g, '-')
+    .replace(/[/\\?%*:|"<>]/g, '-')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -153,6 +153,7 @@ export async function getMediaInfo(bynder, assetId) {
  * Download a collection and its assets
  */
 export async function downloadCollection(bynder, collectionId, outputDir = './data', debug = false) {
+  // TODO async downloads, no need to wait for each download start the next one
   console.log(`Fetching collection ${collectionId}...`)
 
   // Get collection details
@@ -178,7 +179,7 @@ export async function downloadCollection(bynder, collectionId, outputDir = './da
   }
 
   // Get all media in collection
-  console.log(`\nFetching media assets...`)
+  console.log('\nFetching media assets...')
   const mediaList = await getCollectionMedia(bynder, collectionId)
 
   if (debug) {
@@ -237,13 +238,11 @@ export async function downloadCollection(bynder, collectionId, outputDir = './da
         await downloadFile(downloadUrl, assetPath)
         console.log(`  ✓ Downloaded to ${assetPath}`)
       } else {
-        console.log(`  ⚠ No download URL in API response`)
+        console.log('  ⚠ No download URL in API response')
       }
     } catch (error) {
       console.error(`  ✗ Error downloading: ${error.message}`)
     }
-
-    console.log()
   }
 
   if (!debug) {
